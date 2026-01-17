@@ -4,7 +4,29 @@
 
 #include "Tensor.h"
 
-void DeepCpp::Tensor::print_recursive(std::ostream& os, int dim, int offset, int indent) const
+#include <random>
+
+std::vector<double>& deep_cpp::Tensor::getData()
+{
+    return this->data;
+}
+
+std::vector<double>& deep_cpp::Tensor::getGrad()
+{
+    return this->grad;
+}
+
+const std::vector<int>& deep_cpp::Tensor::getShape() const
+{
+    return this->shape;
+}
+
+const std::vector<int>& deep_cpp::Tensor::getStrides() const
+{
+    return this->strides;
+}
+
+void deep_cpp::Tensor::print_recursive(std::ostream& os, int dim, int offset, int indent) const
 {
     if (dim == this->shape.size() - 1)
     {
@@ -34,18 +56,34 @@ void DeepCpp::Tensor::print_recursive(std::ostream& os, int dim, int offset, int
     }
 }
 
-DeepCpp::Tensor::Tensor(std::vector<int>&& shape)
+int deep_cpp::Tensor::getSize() {
+    int size = 1;
+    for (const int& dim : this->shape)
+        size *= dim;
+    return size;
+}
+
+bool deep_cpp::Tensor::getRequiresGrad() {
+    return this->requires_grad;
+}
+
+void deep_cpp::Tensor::setRequiresGrad(bool requires_grad) {
+    this->requires_grad = requires_grad;
+}
+
+deep_cpp::Tensor::Tensor(std::vector<int>&& shape, bool requires_grad)
 {
     this->shape = std::move(shape);
+    this->requires_grad = requires_grad;
 
-    this->size = 1;
-    for (const int& dim : this->shape)
-        this->size *= dim;
-    this->data.resize(this->size);
-    this->grad.resize(this->size);
-    this->data.assign(this->data.size(), 0.0);
-    this->grad.assign(this->grad.size(), 0.0);
+    int size = this->getSize();
+    if (this->requires_grad)
+        this->grad.assign(size, 0.0);
 
+    this->makeStrides();
+}
+
+void deep_cpp::Tensor::makeStrides() {
     this->strides.resize(this->shape.size());
     int current_stride = 1;
     for (int i = this->strides.size() - 1; i >= 0; i--)
@@ -55,42 +93,44 @@ DeepCpp::Tensor::Tensor(std::vector<int>&& shape)
     }
 }
 
-std::vector<double> DeepCpp::Tensor::getData()
-{
-    return this->data;
+void deep_cpp::Tensor::reshape(std::vector<int> &&shape) {
+    int newSize = 1;
+    for (const int& dim : shape)
+        newSize *= dim;
+
+    if (newSize != this->getSize())
+        throw std::runtime_error("Tensor reshape error");
+
+    this->shape = std::move(shape);
+    this->makeStrides();
 }
 
-void DeepCpp::Tensor::setData(std::vector<double> data)
+deep_cpp::Tensor deep_cpp::zeros(std::vector<int>&& shape, bool requires_grad)
 {
-    this->data = data;
+    Tensor tensor(std::move(shape), requires_grad);
+    tensor.getData().assign(tensor.getSize(), 0.0);
+    return tensor;
 }
 
-std::vector<double> DeepCpp::Tensor::getGrad()
+deep_cpp::Tensor deep_cpp::ones(std::vector<int>&& shape, bool requires_grad)
 {
-    return this->grad;
+    Tensor tensor(std::move(shape), requires_grad);
+    tensor.getData().assign(tensor.getSize(), 1.0);
+    return tensor;
 }
 
-void DeepCpp::Tensor::setGrad(std::vector<double> grad)
+deep_cpp::Tensor deep_cpp::rand(std::vector<int>&& shape, bool requires_grad)
 {
-    this->grad = grad;
+    Tensor tensor(std::move(shape), requires_grad);
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> distribution(0.0, 1.0);
+
+    tensor.getData().resize(tensor.getSize());
+    for (double& x : tensor.getData())
+        x = distribution(gen);
+
+    return tensor;
 }
 
-std::vector<int> DeepCpp::Tensor::getShape()
-{
-    return this->shape;
-}
 
-void DeepCpp::Tensor::setShape(std::vector<int> shape)
-{
-    this->shape = shape;
-}
-
-std::vector<int> DeepCpp::Tensor::getStrides()
-{
-    return this->strides;
-}
-
-void DeepCpp::Tensor::setStrides(std::vector<int> strides)
-{
-    this->strides = strides;
-}

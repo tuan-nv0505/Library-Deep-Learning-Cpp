@@ -8,7 +8,7 @@
 #include <vector>
 #include <iomanip>
 
-namespace DeepCpp
+namespace deep_cpp
 {
     class Tensor
     {
@@ -17,11 +17,21 @@ namespace DeepCpp
         std::vector<double> grad;
         std::vector<int> shape;
         std::vector<int> strides;
-        int size;
+        bool requires_grad;
+        void makeStrides();
     public:
-        Tensor(std::vector<int>&& shape);
+        Tensor(std::vector<int>&& shape, bool requires_grad = false);
 
+
+        std::vector<double>& getData();
+        std::vector<double>& getGrad();
+        const std::vector<int>& getShape() const;
+        const std::vector<int>& getStrides() const;
+        int getSize();
+        bool getRequiresGrad();
+        void setRequiresGrad(bool requires_grad);
         void print_recursive(std::ostream& os, int dim, int offset, int indent) const;
+        void reshape(std::vector<int>&& shape);
         friend std::ostream& operator<<(std::ostream& os, const Tensor& tensor)
         {
             if (tensor.data.empty())
@@ -32,16 +42,11 @@ namespace DeepCpp
             tensor.print_recursive(os, 0, 0, 0);
             return os;
         }
-
-        std::vector<double> getData();
-        void setData(std::vector<double> data);
-        std::vector<double> getGrad();
-        void setGrad(std::vector<double> grad);
-        std::vector<int> getShape();
-        void setShape(std::vector<int> shape);
-        std::vector<int> getStrides();
-        void setStrides(std::vector<int> strides);
     };
+
+    Tensor zeros(std::vector<int>&& shape, bool requires_grad = false);
+    Tensor ones(std::vector<int>&& shape, bool requires_grad = false);
+    Tensor rand(std::vector<int>&& shape, bool requires_grad = false);
 }
 
 

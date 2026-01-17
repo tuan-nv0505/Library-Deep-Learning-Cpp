@@ -2,8 +2,9 @@
 #include <iostream>
 
 int main(int argc, char* argv[]) {
-    DeepCpp::Tensor tensor({5, 5, 3});
-    std::cout << tensor;
-
+    std::shared_ptr<deep_cpp::Tensor> tensor = std::make_shared<deep_cpp::Tensor>(deep_cpp::rand({3, 3}, true));
+    std::cout << *tensor << std::endl;
+    tensor->reshape({9, 1});
+    std::cout << *tensor << std::endl;
     return 0;
 }
