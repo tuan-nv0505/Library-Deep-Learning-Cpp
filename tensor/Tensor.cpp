@@ -56,18 +56,21 @@ void deep_cpp::Tensor::print_recursive(std::ostream& os, int dim, int offset, in
     }
 }
 
-int deep_cpp::Tensor::getSize() {
+int deep_cpp::Tensor::getSize() 
+{
     int size = 1;
     for (const int& dim : this->shape)
         size *= dim;
     return size;
 }
 
-bool deep_cpp::Tensor::getRequiresGrad() {
+bool deep_cpp::Tensor::getRequiresGrad() 
+{
     return this->requires_grad;
 }
 
-void deep_cpp::Tensor::setRequiresGrad(bool requires_grad) {
+void deep_cpp::Tensor::setRequiresGrad(bool requires_grad) 
+{
     this->requires_grad = requires_grad;
 }
 
@@ -83,7 +86,8 @@ deep_cpp::Tensor::Tensor(std::vector<int>&& shape, bool requires_grad)
     this->makeStrides();
 }
 
-void deep_cpp::Tensor::makeStrides() {
+void deep_cpp::Tensor::makeStrides() 
+{
     this->strides.resize(this->shape.size());
     int current_stride = 1;
     for (int i = this->strides.size() - 1; i >= 0; i--)
@@ -93,7 +97,8 @@ void deep_cpp::Tensor::makeStrides() {
     }
 }
 
-void deep_cpp::Tensor::reshape(std::vector<int> &&shape) {
+void deep_cpp::Tensor::reshape(std::vector<int> &&shape) 
+{
     int newSize = 1;
     for (const int& dim : shape)
         newSize *= dim;
